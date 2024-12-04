@@ -11,41 +11,53 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Vérifiez que JWT_SECRET est bien défini
 console.log('JWT_SECRET:', JWT_SECRET);
 
+// Importer la fonction getContainer
+const { getContainer } = require('../cosmos');
+
 // Inscription
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, password, is_private } = req.body;
 
-  // Valider les entrées
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
+  const container = await getContainer();
 
-  db.run(
-    `INSERT INTO users (username, password, is_private) VALUES (?, ?, ?)`,
-    [username, hashedPassword, is_private ? 1 : 0],
-    (err) => {
-      if (err) return res.status(400).json({ error: 'User already exists' });
-      res.json({ message: 'User registered' });
-    }
-  );
+  try {
+    const { resource } = await container.items.create({
+      username,
+      password: hashedPassword,
+      is_private: is_private ? true : false,
+    });
+    res.json({ message: 'User registered', user: resource });
+  } catch (err) {
+    res.status(400).json({ error: 'User already exists' });
+  }
 });
 
 
-// Connexion
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+  const container = await getContainer();
 
-  db.get(`SELECT * FROM users WHERE username = ?`, [username], (err, user) => {
+  try {
+    const { resources: users } = await container.items
+      .query({ query: 'SELECT * FROM c WHERE c.username = @username', parameters: [{ name: '@username', value: username }] })
+      .fetchAll();
+
+    const user = users[0];
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Ajout d'une valeur par défaut pour JWT_SECRET
-    const token = jwt.sign({ id: user.id }, JWT_SECRET || 'defaultsecret', { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || 'defaultsecret', { expiresIn: '1h' });
     res.json({ token });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 
 module.exports = router;
