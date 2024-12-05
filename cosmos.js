@@ -1,23 +1,27 @@
-const { CosmosClient } = require('@azure/cosmos');
+const { MongoClient } = require('mongodb');
 
-const client = new CosmosClient({
-  endpoint: process.env.COSMOS_URI,
-  key: process.env.COSMOS_KEY,
-});
+// URI de connexion à Cosmos DB avec l'API MongoDB
+const uri = "mongodb://linkuplnb-server:hZd1Gb0lCV1shCeNEMgFUbWLcCrWcsLprtZGBiS6kXELaJcp31jos3ezFammTIK1bZOYcRLdqnLmACDbzHkpGg%3D%3D@linkuplnb-server.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&maxIdleTimeMS=120000&appName=@linkuplnb-server@";
 
-console.log("COSMOS_URI:", process.env.COSMOS_URI);
-console.log("COSMOS_KEY:", process.env.COSMOS_KEY ? "Key exists" : "Key is missing");
+// Connexion à Cosmos DB via MongoDB
+MongoClient.connect(uri, { useUnifiedTopology: true }, (err, client) => {
+  if (err) {
+    console.error("Erreur de connexion à Cosmos DB via MongoDB:", err);
+    return;
+  }
 
+  // Connexion réussie
+  console.log("Connecté à Cosmos DB via MongoDB");
 
-const databaseId = 'linkup-database';
-const containerId = 'LinkUp';
+  // Identifiants de la base de données et de la collection
+  const databaseId = 'linkup-database';
+  const containerId = 'LinkUp';
 
-const getContainer = async () => {
-  const database = client.database(databaseId);
-  const container = database.container(containerId);
-  return container;
-};
+  const db = client.db(databaseId); // Utilisation de MongoClient pour obtenir la base de données
+  const collection = db.collection(containerId); // Utilisation de MongoClient pour obtenir la collection
 
 module.exports = {
-  getContainer,
+  getContainer: () => {
+    return client.db(databaseId).collection(containerId);
+  },
 };
