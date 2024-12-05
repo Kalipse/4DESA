@@ -5,6 +5,10 @@ const client = new CosmosClient({
   key: process.env.COSMOS_KEY,
 });
 
+console.log("COSMOS_URI:", process.env.COSMOS_URI);
+console.log("COSMOS_KEY:", process.env.COSMOS_KEY ? "Key exists" : "Key is missing");
+
+
 const databaseId = 'linkup-database';
 const containerId = 'LinkUp';
 
