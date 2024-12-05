@@ -9,11 +9,14 @@ const databaseId = 'linkup-database';
 const containerId = 'LinkUp';
 
 const getContainer = async () => {
-  const database = client.database(databaseId);
-  const container = database.container(containerId);
-  return container;
+  try {
+    const database = client.database(databaseId);
+    const container = database.container(containerId);
+    console.log('Successfully connected to the container');
+    return container;
+  } catch (error) {
+    console.error('Error connecting to Cosmos DB:', error);
+  }
 };
 
-module.exports = {
-  getContainer,
-};
+module.exports = { getContainer };

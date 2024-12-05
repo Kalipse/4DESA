@@ -13,9 +13,15 @@ console.log('JWT_SECRET:', JWT_SECRET);
 
 // Importer la fonction getContainer
 const { getContainer } = require('../cosmos');
+getContainer().then((container) => {
+  console.log('Container fetched successfully!');
+}).catch((err) => {
+  console.error('Error during container fetch:', err);
+});
 
 // Inscription
 router.post('/register', async (req, res) => {
+  console.log('Received registration request'); // Log pour vérifier que la requête est reçue
   const { username, password, is_private } = req.body;
 
   if (!username || !password) {
@@ -25,17 +31,24 @@ router.post('/register', async (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
   const container = await getContainer();
 
+  const userId = username; // Utilisez un UUID si nécessaire
+
   try {
     const { resource } = await container.items.create({
+      id: userId,
       username,
       password: hashedPassword,
       is_private: is_private ? true : false,
     });
+    console.log('User created in Cosmos DB:', resource); // Log pour vérifier l'insertion
     res.json({ message: 'User registered', user: resource });
   } catch (err) {
-    res.status(400).json({ error: 'User already exists' });
+    console.error('Error during user creation:', err.message || err);
+    res.status(400).json({ error: 'User already exists or other error' });
   }
 });
+
+
 
 
 router.post('/login', async (req, res) => {
