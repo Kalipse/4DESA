@@ -1,5 +1,3 @@
-# 4DESA
-
 # Documentation du Projet LinkUp
 
 Bienvenue dans la documentation du projet LinkUp. Ce fichier README vous guidera à travers les informations essentielles concernant l'API, son déploiement, ainsi que les choix techniques effectués tout au long du développement.

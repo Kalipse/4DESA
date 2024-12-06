@@ -1,0 +1,294 @@
+openapi: 3.0.0
+info:
+  title: Link Up Social Media API
+  description: API pour la gestion des utilisateurs et du contenu d'une plateforme sociale.
+  version: 1.0.0
+servers:
+  - url: https://linkuplnb-hwcfg6bygacdh3dm.francecentral-01.azurewebsites.net/
+    description: Serveur cloud Azure
+
+paths:
+  /auth/register:
+    post:
+      summary: Inscription d'un utilisateur
+      tags: [Authentification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Nom d'utilisateur
+                password:
+                  type: string
+                  description: Mot de passe
+                is_private:
+                  type: boolean
+                  description: Définir si le profil est privé ou public
+              required:
+                - username
+                - password
+      responses:
+        200:
+          description: Utilisateur inscrit avec succès
+        400:
+          description: Requête invalide ou utilisateur déjà existant
+
+  /auth/login:
+    post:
+      summary: Connexion d'un utilisateur
+      tags: [Authentification]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Nom d'utilisateur
+                password:
+                  type: string
+                  description: Mot de passe
+              required:
+                - username
+                - password
+      responses:
+        200:
+          description: Connexion réussie
+        401:
+          description: Identifiants invalides
+
+  /public:
+    get:
+      summary: Obtenir tous les utilisateurs publics
+      tags: [Utilisateur]
+      responses:
+        200:
+          description: Liste des utilisateurs publics
+        400:
+          description: Erreur lors de la récupération des données
+
+  /user/me:
+    get:
+      summary: Obtenir les informations de l'utilisateur authentifié
+      tags: [Utilisateur]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Informations de l'utilisateur
+        401:
+          description: Utilisateur non authentifié
+        404:
+          description: Utilisateur non trouvé
+
+    put:
+      summary: Mettre à jour le profil de l'utilisateur
+      tags: [Utilisateur]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                is_private:
+                  type: boolean
+      responses:
+        200:
+          description: Profil mis à jour avec succès
+        400:
+          description: Erreur dans la requête
+        404:
+          description: Utilisateur non trouvé
+
+    delete:
+      summary: Supprimer le compte de l'utilisateur
+      tags: [Utilisateur]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Compte supprimé avec succès
+        404:
+          description: Utilisateur non trouvé
+
+  /content/create:
+    post:
+      summary: Créer un contenu avec un média
+      tags: [Contenu]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Texte du contenu
+                media:
+                  type: string
+                  format: binary
+                  description: Fichier média à uploader
+              required:
+                - content
+      responses:
+        200:
+          description: Contenu créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  content:
+                    type: object
+        401:
+          description: Utilisateur non authentifié
+        400:
+          description: Erreur lors de la création du contenu
+
+  /content:
+    get:
+      summary: Lire tous les contenus de l'utilisateur authentifié
+      tags: [Contenu]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Liste des contenus de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        401:
+          description: Utilisateur non authentifié
+        400:
+          description: Erreur lors de la récupération des contenus
+
+  /content/{id}:
+    get:
+      summary: Récupérer les contenus d'un utilisateur spécifique
+      tags: [Contenu]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de l'utilisateur
+          schema:
+            type: string
+      responses:
+        200:
+          description: Liste des contenus de l'utilisateur demandé
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        401:
+          description: Utilisateur non authentifié
+        404:
+          description: Utilisateur ou contenu non trouvé
+        400:
+          description: Erreur lors de la récupération des contenus
+
+    put:
+      summary: Modifier un contenu
+      tags: [Contenu]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du contenu à modifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: Nouveau texte du contenu
+                media:
+                  type: string
+                  format: binary
+                  description: Nouveau fichier média
+      responses:
+        200:
+          description: Contenu modifié avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  content:
+                    type: object
+        401:
+          description: Utilisateur non authentifié
+        404:
+          description: Contenu non trouvé
+        400:
+          description: Erreur lors de la modification du contenu
+
+    delete:
+      summary: Supprimer un contenu
+      tags: [Contenu]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du contenu à supprimer
+          schema:
+            type: string
+      responses:
+        200:
+          description: Contenu supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        401:
+          description: Utilisateur non authentifié
+        404:
+          description: Contenu non trouvé
+        400:
+          description: Erreur lors de la suppression du contenu
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
