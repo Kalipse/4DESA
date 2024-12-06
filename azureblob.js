@@ -10,7 +10,7 @@ async function uploadToBlobStorage(containerName, filePath, blobName) {
   const uploadBlobResponse = await blobClient.uploadFile(filePath);
 
   console.log(`Blob uploaded successfully: ${blobClient.url}`);
-  return blobClient.url; // Return the URL of the uploaded blob
+  return blobClient.url; 
 }
 
 module.exports = { uploadToBlobStorage };

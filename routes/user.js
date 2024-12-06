@@ -1,7 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const db = require('../db');
 const router = express.Router();
 const { JWT_SECRET } = process.env;
 
@@ -110,7 +109,6 @@ router.delete('/me', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'User not found in Cosmos DB' });
     }
 
-    // Utilisez la partition key si nécessaire (remplacez 'username' par la clé réelle)
     const partitionKey = user.username; 
 
     // Supprimez l'utilisateur
